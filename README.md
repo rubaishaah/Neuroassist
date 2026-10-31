@@ -156,7 +156,7 @@ study_backend/   Google Apps Script that saves study results to a Google Sheet
 docs/index.html  interactive demo + study mode (GitHub Pages)
 ```
 
-## Limitations (and what a PhD would do about them)
+## Limitations 
 
 - **The user is simulated.** EEG trials are real recordings (with real data) but are replayed, so the user's brain doesn't actually respond to the robot. A real closed loop needs live participants, and users co-adapt to the agent.
 - **Gaze is modelled, not recorded.** The next step is a VR headset or webcam eye tracker.
