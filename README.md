@@ -6,19 +6,6 @@ A compact research prototype in which a **brain–computer interface and an embo
 
 *Replay of one real-data episode: the agent's belief over objects, its share of control (α) and each step's EEG decode (green = correct, red = wrong).*
 
----
-
-## What it demonstrates
-
-| PhD theme | Where it lives in the code |
-|---|---|
-| Jointly modelling neural activity, behaviour, agent state and environment | `agent.IntentEstimator`: a Bayesian belief over goals that fuses EEG, gaze, task context and the arm's current position |
-| Uncertainty-aware neural decoding | `decoder.MIDecoder`: a Riemannian tangent-space decoder with **temperature-scaled (calibrated) probabilities** and entropy as the uncertainty signal |
-| Online adaptation | `decoder.OnlineDecoder`: **unsupervised** re-centring of EEG covariances with a geodesic running mean, which corrects cross-day drift without labels |
-| Shared-control policies | `agent.adaptive_alpha`: policy blending where agent authority grows with its confidence, is capped so the user always keeps some control, and gives way to a confident opposing EEG decode (a **user veto**) |
-| Embodied platform | `env.py`: a tabletop reaching task with an arm, objects, a simulated user and a gaze model that includes "Midas touch" glances |
-| Evaluation as an interactive technology | Task success, wrong-object errors, time to grasp, path efficiency, the **user's share of control** and decoder accuracy, compared across 6 conditions with paired statistics |
-| Accessibility | Fig. 2 shows who benefits: shared control mostly helps users whose BCI decoding is weak |
 
 ## Architecture
 
