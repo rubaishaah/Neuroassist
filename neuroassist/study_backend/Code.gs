@@ -1,20 +1,6 @@
 /**
  * NeuroAssist study backend: receives results from the study page and stores
- * them in this Google Sheet.
- *
- * Setup (once): see README "Saving results automatically". In short:
- *   Extensions -> Apps Script -> paste this file -> Deploy -> New deployment ->
- *   type "Web app", Execute as "Me", Who has access "Anyone" -> copy the URL
- *   into RESULTS_URL in docs/index.html.
- *
- * Sheets created automatically:
- *   Participants  one row per participant (updated after every block, so a
- *                 participant who stops early still leaves their completed blocks)
- *   Trials        one row per scored run, for a quick look in the spreadsheet
- *
- * The full result file is stored in the json_1, json_2, ... columns of
- * Participants (Google limits a cell to 50,000 characters, so it is split).
- * analyse_study.py joins them back together.
+ * them in the Google Sheet.
  */
 
 // Must match STUDY_KEY in docs/index.html. It only stops random spam; it is not a password.
