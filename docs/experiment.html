@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The experiment · NeuroAssist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="pages.css">
+</head>
+<body>
+<nav class="nav" aria-label="Pages"><a class="brand" href="index.html">NeuroAssist</a><div class="links"><a href="story.html">Sam's story</a><a href="experiment.html" aria-current="page">The experiment</a><a href="results.html">Results</a><a class="cta" href="index.html">Help Sam</a></div></nav>
+<main>
+
+<section class="ch center">
+  <p class="tag rv">01 · THE STUDY</p>
+  <h1 class="rv d1">One day with <span class="serif">each robot.</span></h1>
+  <svg class="viz rv d2" viewBox="0 0 1300 280" role="img" aria-label="Timeline: practice, then day A, day B and day C, then results">
+    <line x1="60" y1="140" x2="1240" y2="140" stroke="#26303b" stroke-width="2"/>
+    <circle cx="150" cy="140" r="10" fill="#7d8a99"/><text x="150" y="100" text-anchor="middle" fill="#a7b2bf" font-size="16">practice</text>
+    <g><circle cx="430" cy="140" r="46" fill="rgba(63,182,178,.12)" stroke="#3fb6b2" stroke-width="2"/><text x="430" y="148" text-anchor="middle" fill="#e6ebf0" font-weight="800" font-size="24">A</text><text x="430" y="222" text-anchor="middle" fill="#a7b2bf" font-size="16">day 1</text></g>
+    <g><circle cx="700" cy="140" r="46" fill="rgba(63,182,178,.12)" stroke="#3fb6b2" stroke-width="2"/><text x="700" y="148" text-anchor="middle" fill="#e6ebf0" font-weight="800" font-size="24">B</text><text x="700" y="222" text-anchor="middle" fill="#a7b2bf" font-size="16">day 2</text></g>
+    <g><circle cx="970" cy="140" r="46" fill="rgba(63,182,178,.12)" stroke="#3fb6b2" stroke-width="2"/><text x="970" y="148" text-anchor="middle" fill="#e6ebf0" font-weight="800" font-size="24">C</text><text x="970" y="222" text-anchor="middle" fill="#a7b2bf" font-size="16">day 3</text></g>
+    <circle class="pulse" cx="1180" cy="140" r="10" fill="#f0a050"/><text x="1180" y="100" text-anchor="middle" fill="#a7b2bf" font-size="16">results</text>
+    <circle r="7" fill="#ffcfb5"><animateMotion dur="7s" repeatCount="indefinite" path="M150 140 H1180"/></circle>
+  </svg>
+  <div class="stats rv d3" style="justify-content:center">
+    <span><b>6</b>requests a day</span><span><b>1</b>change of mind</span><span><b>1</b>buzzing distractor</span><span><b>21%</b>of presses misread</span>
+  </div>
+  <p class="small rv d3">The order shuffles for each person, and the systems are hidden as A, B and C.</p>
+</section>
+
+<section class="ch center">
+  <p class="tag rv">02 · THE THREE ROBOTS</p>
+  <h2 class="rv d1">Same task. <span class="serif">Different hands on the wheel.</span></h2>
+  <div class="trio">
+    <div class="glass rv d1"><div class="split3"><div style="width:100%;background:#3fb6b2"></div></div><b>Sam alone</b><p>The arm follows only her decoded signal.</p></div>
+    <div class="glass hi rv d2"><div class="split3"><div style="width:45%;background:#3fb6b2"></div><div style="width:55%;background:#f0a050"></div></div><b>Shared <span class="small" style="color:var(--accent)">· tested</span></b><p>The robot blends in its guess, more when sure, and backs off when she says no.</p></div>
+    <div class="glass rv d3"><div class="split3"><div style="width:100%;background:#f0a050"></div></div><b>Robot alone</b><p>Goes where she looks and her routine suggests.</p></div>
+  </div>
+  <p class="small rv"><span style="color:#3fb6b2">■</span> Sam steers &nbsp; <span style="color:#f0a050">■</span> robot steers</p>
+</section>
+
+<section class="ch center">
+  <p class="tag rv">03 · HOW SHARING WORKS</p>
+  <h2 class="rv d1">Zig-zag in, <span class="serif">smooth out.</span></h2>
+  <svg class="viz rv d2" viewBox="0 0 760 300" style="max-width:900px" role="img" aria-label="Sam alone makes a zig-zag path to the cup; shared control makes a smooth path">
+    <rect x="10" y="10" width="740" height="280" rx="22" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.08)"/>
+    <circle cx="100" cy="240" r="22" fill="#2a3644" stroke="#7d8a99" stroke-width="2"/>
+    <rect x="600" y="60" width="40" height="44" rx="7" fill="#e6ebf0"/><path d="M640 70 q12 6 0 16" fill="none" stroke="#e6ebf0" stroke-width="4"/><ellipse class="pulse" cx="620" cy="108" rx="44" ry="12" fill="none" stroke="#3fb6b2" stroke-width="2.5"/>
+    <path d="M100 240 L180 200 L160 170 L250 150 L230 120 L330 115" fill="none" stroke="#f0a050" stroke-width="2.5" stroke-dasharray="6 7" opacity=".8"/>
+    <path class="drawpath" d="M100 240 C250 190 410 110 600 90" fill="none" stroke="#3fb6b2" stroke-width="4" stroke-linecap="round"/>
+    <text class="m" x="190" y="235" fill="#f0a050" font-size="13">Sam alone: zig-zag</text>
+    <text class="m" x="390" y="185" fill="#3fb6b2" font-size="13">shared: smooth</text>
+  </svg>
+  <p class="lede rv d3">The robot fuses her brain signal, where she looks and her routine into a guess. It steers more as it gets surer, and hands control back the moment her signal disagrees.</p>
+  <details class="more rv">
+    <summary>Details for researchers</summary>
+    <div class="body">
+      <p style="margin:0"><b>Decode.</b> Each key press becomes a calibrated probability of "right", misreading 21% of presses, the average measured on real EEG (BCI Competition IV 2a, 9 users).</p>
+      <p style="margin:0"><b>Infer.</b> A Bayesian belief over the objects fuses that probability, gaze (with an outlier term for stray glances) and a routine prior, with forgetting so Sam can change her mind.</p>
+      <p style="margin:0"><b>Share.</b> Arm motion = α × robot direction + (1 − α) × Sam's direction. α grows with confidence up to 0.85, and drops to 0 when her signal clearly disagrees.</p>
+      <p style="margin:0"><b>Measured.</b> Right item fetched, time, share of steering kept by Sam, recovery after a change of mind, distractor grabs, and after each day: workload (NASA-TLX), felt in control, trust and enjoyment.</p>
+      <p style="margin:0"><b>Real vs simulated.</b> Real: participants, their gaze, choices, timing and ratings. Simulated: the decoder, so the brain in the loop isn't the participant's own. A live EEG study is the next step.</p>
+    </div>
+  </details>
+  <a class="btn rv" href="index.html">Try it yourself →</a>
+</section>
+
+</main>
+<footer class="foot">NeuroAssist · a research prototype on shared-control brain–computer interfaces · Sam is a fictional persona</footer>
+<script>
+(()=>{const els=document.querySelectorAll('.rv');if(!('IntersectionObserver' in window)){els.forEach(e=>e.classList.add('in'));return}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});els.forEach(e=>io.observe(e));
+setTimeout(()=>els.forEach(e=>e.classList.add('in')),2500);})();
+</script>
+
+</body>
+</html>
