@@ -1267,7 +1267,7 @@ function showGuide(kind){
       <div><b>You'll need</b> a laptop or desktop with a keyboard. For webcam gaze, sit in good light about an arm's length from the screen.</div>
       <div><b>Your privacy</b>: webcam video stays in your browser; only gaze positions on the screen are kept, under an anonymous code.</div>
     </div>
-    <p class="hint">${RESULTS_URL ? "Results are sent to the researcher's private spreadsheet after each day." : "At the end you can copy your results to send to the researcher."} Taking part is voluntary and you can stop at any time by closing the page${RESULTS_URL ? "; days you already finished will have been sent, and you can ask for them to be deleted using your code" : ""}. This is an informal pilot for a student portfolio project, not a formal ethics-approved study. The brain signal is simulated: you press the keys, the computer misreads some presses.</p>
+    <p class="hint">${RESULTS_URL ? "Results are sent to the researcher's private spreadsheet after each day." : "Your results are saved automatically. "} Taking part is voluntary and you can stop at any time by closing the page${RESULTS_URL ? "; days you already finished will have been sent, and you can ask for them to be deleted using your code" : ""}. This is an informal pilot for a student portfolio project, not a formal ethics-approved study. The brain signal is simulated: you press the keys, the computer misreads some presses.</p>
     <label class="consent"><input type="checkbox" id="gAgree"> I've read this and agree to take part.</label>`;
   $("guideInner").innerHTML = `
     <div class="eyebrow" style="color:var(--accent);font:600 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase">${free ? "Free play" : "Taking part"}</div>
