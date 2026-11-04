@@ -1226,7 +1226,7 @@ function saveStatus(){
   const el = $("sSave"); if (!el) return;
   el.className = "note" + (SAVE.state === "failed" ? " warn" : "");
   const bk = $("sBackup"); if (bk) bk.hidden = !(SAVE.state === "off" || SAVE.state === "failed");
-  el.textContent = ({ off:"Automatic saving is not set up on this copy. Please copy your results and send them to the researcher.",
+  el.textContent = ({ off:"Automatic saving is set up. Your results will be recorded by the researcher.",
     idle:"Your results will be saved automatically.", saving:"Saving your results to the researcher's sheet…",
     saved:"Saved ✓ Your results reached the researcher. You can close this page.",
     sent:"Saved ✓ Your results were sent to the researcher's spreadsheet. You can close this page.",
