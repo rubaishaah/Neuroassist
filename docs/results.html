@@ -131,7 +131,10 @@ function table(){
   $("liveNote").textContent = "Averages over completed participants only. No individual data is shown. Felt in control is rated 1–7.";
 }
 $("liveRefresh").addEventListener("click", () => load(true));
-render(); load();
+render();
+load();
+
+setInterval(() => load(false), 30000);
 })();
 </script>
 </body>
