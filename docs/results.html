@@ -64,7 +64,7 @@ setTimeout(()=>els.forEach(e=>e.classList.add('in')),2500);})();
 <script src="config.js"></script>
 <script>
 (() => {
-const CFG = window.NEUROASSIST_CONFIG || {}, RESULTS_URL = CFG.RESULTS_URL || "";
+const CFG = window.NEUROASSIST_CONFIG || {}, RESULTS_URL = CFG.RESULTS_URL || "https://script.google.com/macros/s/AKfycbzFJZftwv41THmtpg9GT1FX0EscjQ3HUGjSCuQcrSLnqK2Z8SrFzkOByS2qbz0P0cLlDA/exec";
 const $ = id => document.getElementById(id);
 const OFFLINE = { direct:{success:.757,time_s:36.0,user_share:1}, autonomy:{success:.991,time_s:28.1,user_share:0}, adaptive:{success:.976,time_s:27.6,user_share:.24} };
 const NAMES = { direct:"Sam alone", autonomy:"Robot alone", adaptive:"Shared" };
