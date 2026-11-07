@@ -566,6 +566,27 @@ html:root,html:root[data-theme],html:root[data-theme="light"]{
           <tbody id="stats"></tbody>
         </table></div>
         </div>
+         <div id="gazeDiagnostics" style="margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:10px">
+           <h2 style="font-size:13.5px;margin:4px 0 10px">Gaze diagnostics</h2>
+
+           <div style="display:flex;justify-content:space-between;margin:8px 0">
+             <span>Calibration error</span>
+             <strong id="diagCalib">Not available</strong>
+           </div>
+           <p class="hint">Lower pixel error is better.</p>
+
+           <div style="display:flex;justify-content:space-between;margin:8px 0">
+             <span>Valid gaze samples</span>
+             <strong id="diagSamples">0</strong>
+           </div>
+           <p class="hint">Number of decision steps with a valid gaze estimate.</p>
+
+           <div style="display:flex;justify-content:space-between;margin:8px 0">
+             <span>Percentage on target</span>
+             <strong id="diagTarget">Not available</strong>
+           </div>
+           <p class="hint">Percentage of valid gaze samples falling on the requested object.</p>
+         </div>
       </div>
     </details>
     </div>
@@ -907,7 +928,26 @@ function render(){
   const rows = order.filter(([k]) => stats[k]).map(([k,l]) => { const s = stats[k];
     return `<tr><td>${l}</td><td class="n">${s.n}</td><td class="n">${Math.round(100*s.ok/s.n)}%</td><td class="n">${(s.steps/s.n).toFixed(1)}</td><td class="n">${Math.round(100*s.user/s.n)}%</td></tr>`; });
   $("stats").innerHTML = rows.length ? rows.join("") : `<tr><td colspan="5" style="color:var(--muted)">Finish a run to see your numbers. Try each mode and compare.</td></tr>`;
-  $("gzrelf").hidden = $("gz").value !== "sim";
+  // ---------- gaze diagnostics ----------
+  const diagCalib = $("diagCalib");
+  const diagSamples = $("diagSamples");
+  const diagTarget = $("diagTarget");
+
+  if (diagCalib) {
+     diagCalib.textContent =
+        W.calibErrPx == null ? "Not available" : W.calibErrPx + " px";
+  }
+
+  if (diagSamples) {
+     diagSamples.textContent = S.gazeN;
+  }
+
+  if (diagTarget) {
+     diagTarget.textContent = S.gazeN
+        ? ((S.onGoal / S.gazeN) * 100).toFixed(1) + "%"
+        : "Not available";
+  }
+   $("gzrelf").hidden = $("gz").value !== "sim";
   document.querySelectorAll("#modeseg button").forEach(b2 => b2.setAttribute("aria-pressed", b2.dataset.m === mode));
   const sb = $("studybar");
   if (study.active){
@@ -1121,8 +1161,15 @@ function runCalibration(){
         validating = false;
         const r = tgt.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
         const errs = valSamples.map(s => Math.hypot(s.x-cx, s.y-cy));
-        W.calibErrPx = errs.length ? Math.round(median(errs)) : null;
-        finish(true);
+         if (errs.length === 0) {
+            W.calibErrPx = null;
+            W.err = "Calibration failed: no gaze samples were collected during the accuracy check. Please check your lighting and camera position, then try again.";
+            finish(false);
+  return;
+}
+
+W.calibErrPx = Math.round(median(errs));
+finish(true);
       }, 3600);
     }
     function finish(ok){ calibActive = false; validating = false; el.hidden = true; el.innerHTML = ""; resolve(ok); }
