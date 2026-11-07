@@ -1052,8 +1052,7 @@ async function startWebcam(){
      const showDebug =
        $("gz").value === "webcam" &&
        W.state === "ready" &&
-       !calibActive &&
-       !study.active;
+       !calibActive;
 
      if (showDebug && Number.isFinite(d.x) && Number.isFinite(d.y)) {
        gazeDebugDot.style.left = d.x + "px";
@@ -1067,8 +1066,7 @@ async function startWebcam(){
      if (
        $("gz").value === "webcam" &&
        W.state === "ready" &&
-       !calibActive &&
-       !study.active
+       !calibActive 
      ) {
        V.setCursor(V.worldFromClient(d.x, d.y, true));
      }
