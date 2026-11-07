@@ -418,6 +418,21 @@ html:root,html:root[data-theme],html:root[data-theme="light"]{
   --eeg-bg:#070b0f; color-scheme:dark}
 </style>
 <style>body{margin:0}[hidden]{display:none!important}</style>
+<style>
+#gaze-debug-dot {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #facc15;
+  background: rgba(250, 204, 21, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 99999;
+  display: none;
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+}
+</style>
 </head>
 <body>
 
@@ -984,6 +999,7 @@ const SND = (() => {
 
 // ---------- gaze sources ----------
 const W = { state:"off", buf:[], err:null, calibErrPx:null };
+let gazeDebugDot = null;
 function webcamFixation(){
   const now = performance.now(); const recent = W.buf.filter(s => now - s.t < 1200);
   if (recent.length < 3) return null;
@@ -1013,11 +1029,50 @@ async function startWebcam(){
     wg.saveDataAcrossSessions(false);
     wg.setRegression("ridge").showPredictionPoints(false).applyKalmanFilter(true);
     wg.setGazeListener((d) => {
-      if (!d) return;
-      W.buf.push({t: performance.now(), x:d.x, y:d.y}); if (W.buf.length > 120) W.buf.shift();
-      if (calibActive && validating) valSamples.push({x:d.x, y:d.y});
-      if ($("gz").value === "webcam" && W.state === "ready" && !calibActive && !study.active) V.setCursor(V.worldFromClient(d.x, d.y, true));
-    });
+     if (!d) {
+       if (gazeDebugDot) gazeDebugDot.style.display = "none";
+       return;
+     }
+
+     W.buf.push({t: performance.now(), x:d.x, y:d.y});
+     if (W.buf.length > 120) W.buf.shift();
+
+     if (calibActive && validating) {
+       valSamples.push({x:d.x, y:d.y});
+     }
+
+     // Create the yellow debug dot
+     if (!gazeDebugDot) {
+       gazeDebugDot = document.createElement("div");
+       gazeDebugDot.id = "gaze-debug-dot";
+       document.body.appendChild(gazeDebugDot);
+     }
+
+     // Show the dot only outside the actual study
+     const showDebug =
+       $("gz").value === "webcam" &&
+       W.state === "ready" &&
+       !calibActive &&
+       !study.active;
+
+     if (showDebug && Number.isFinite(d.x) && Number.isFinite(d.y)) {
+       gazeDebugDot.style.left = d.x + "px";
+       gazeDebugDot.style.top = d.y + "px";
+       gazeDebugDot.style.display = "block";
+     } else {
+       gazeDebugDot.style.display = "none";
+     }
+
+     // Keep the existing 3D gaze cursor working
+     if (
+       $("gz").value === "webcam" &&
+       W.state === "ready" &&
+       !calibActive &&
+       !study.active
+     ) {
+       V.setCursor(V.worldFromClient(d.x, d.y, true));
+     }
+   });
     await wg.begin();
     if (wg.removeMouseEventListeners) wg.removeMouseEventListeners();
     W.state = "camera"; camNote();
