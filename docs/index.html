@@ -1095,12 +1095,20 @@ async function startWebcam(){
        !calibActive;
 
      if (showDebug && Number.isFinite(d.x) && Number.isFinite(d.y)) {
-       gazeDebugDot.style.left = d.x + "px";
-       gazeDebugDot.style.top = d.y + "px";
-       gazeDebugDot.style.display = "block";
-     } else {
-       gazeDebugDot.style.display = "none";
+        const recent = W.buf.filter(
+           s => performance.now() - s.t < 1200
+        );
+        
+     if (recent.length >= 3) {
+        const smoothX = median(recent.map(s => s.x));
+        const smoothY = median(recent.map(s => s.y));
+        gazeDebugDot.style.left = smoothX + "px";
+        gazeDebugDot.style.top = smoothY + "px";
+        gazeDebugDot.style.display = "block";
      }
+   } else {
+        gazeDebugDot.style.display = "none";
+   }
 
      // Keep the existing 3D gaze cursor working
      if (
