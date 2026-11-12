@@ -1152,7 +1152,17 @@ function runCalibration(){
     calibActive = true;
     const el = $("calib"); el.hidden = false;
     try { window.webgazer.clearData(); window.webgazer.showVideoPreview(true); } catch(e){}
-    const pts = [[.08,.1],[.5,.1],[.92,.1],[.08,.5],[.5,.5],[.92,.5],[.08,.9],[.5,.9],[.92,.9]];
+    const pts = [
+       // Original 9 calibration points
+       [.08, .10], [.50, .10], [.92, .10],
+       [.08, .50], [.50, .50], [.92, .50],
+       [.08, .90], [.50, .90], [.92, .90],
+       // Additional points concentrated near the centre
+       [.30, .32], [.50, .32], [.70, .32],
+       [.30, .50],             [.70, .50],
+       [.30, .68], [.50, .68], [.70, .68]
+    ];
+
     el.innerHTML = `<div class="msg"><b>Calibrate your eyes</b><br>Keep your head still and your face centred in the small video. Look straight at each dot and click it <b>3 times</b> while looking at it.<br><br><button class="btn" type="button" id="cskip">Cancel</button></div>` +
       pts.map((p,i) => `<button class="dot" type="button" data-n="0" style="left:${p[0]*100}%;top:${p[1]*100}%" aria-label="Calibration point ${i+1}"></button>`).join("");
     let doneCount = 0;
