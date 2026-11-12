@@ -1162,16 +1162,51 @@ function runCalibration(){
        [.30, .50],             [.70, .50],
        [.30, .68], [.50, .68], [.70, .68]
     ];
+     el.innerHTML = `<div class="msg">
+     <b>Calibrate your eyes</b><br>
+     Keep your head still and your face centred in the small video.
+     Look straight at each dot and click it <b>3 times</b>
+     while looking at it.<br><br>
+     <div id="calibProgress">Completed: 0 / ${pts.length}</div>
+     <br>
+     <button class="btn" type="button" id="cskip">Cancel</button>
+     </div>` +
+        pts.map((p, i) => `
+        <button class="dot" type="button" data-n="0"
+        style="left:${p[0]*100}%;top:${p[1]*100}%"
+        aria-label="Calibration point ${i+1}">
+        </button>
+        `).join("");
+     let doneCount = 0;
+     el.querySelectorAll(".dot").forEach(d => {
+        d.addEventListener("click", () => {
+           // Prevent completed dots from being counted again
+           if (d.classList.contains("done")) return;
+           const r = d.getBoundingClientRect();
+           try {
+              window.webgazer.recordScreenPosition(
+                 r.left + r.width / 2,
+                 r.top + r.height / 2,
+                 "click"
+              );
+           } catch (e) {
+              console.error("Calibration recording error:", e);
+           }
+           const n = Number(d.dataset.n) + 1;
+           d.dataset.n = n;
+           if (n >= 3) {
+              d.classList.add("done");
+              doneCount++;
+              document.getElementById("calibProgress").textContent =
+                 `Completed: ${doneCount} / ${pts.length}`;
+              if (doneCount === pts.length) {
+                 console.log("All calibration points completed.");
+                 validate();
+              }
+           }
+        });
+     });
 
-    el.innerHTML = `<div class="msg"><b>Calibrate your eyes</b><br>Keep your head still and your face centred in the small video. Look straight at each dot and click it <b>3 times</b> while looking at it.<br><br><button class="btn" type="button" id="cskip">Cancel</button></div>` +
-      pts.map((p,i) => `<button class="dot" type="button" data-n="0" style="left:${p[0]*100}%;top:${p[1]*100}%" aria-label="Calibration point ${i+1}"></button>`).join("");
-    let doneCount = 0;
-    el.querySelectorAll(".dot").forEach(d => d.addEventListener("click", () => {
-      const r = d.getBoundingClientRect();
-      try { window.webgazer.recordScreenPosition(r.left + r.width/2, r.top + r.height/2, "click"); } catch(e){}
-      const n = +d.dataset.n + 1; d.dataset.n = n;
-      if (n >= 3){ d.classList.add("done"); doneCount++; if (doneCount === pts.length) validate(); }
-    }));
     $("cskip").onclick = () => finish(false);
     function validate(){
       el.innerHTML = `<div class="msg" style="top:30%"><b>Accuracy check</b><br>Stare at the red dot for 3 seconds.</div><div class="target" style="left:50%;top:62%"></div>`;
