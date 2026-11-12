@@ -332,6 +332,16 @@ section.chapter{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16
 .startrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .btn.start{font-size:17px;padding:13px 26px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Keep calibration dots above the webcam preview */
+#calib {
+  z-index: 10001 !important;
+}
+
+#calib .dot {
+  z-index: 10002 !important;
+  pointer-events: auto !important;
+}
+
 </style>
 <style>
 /* ---- full-scene layout ---- */
@@ -1206,20 +1216,8 @@ function runCalibration(){
            }
         });
      });
-     const moveCameraPreview = () => {
-        const preview = document.getElementById("webgazerVideoContainer");
-        
-     if (preview) {
-        preview.style.setProperty("position", "fixed", "important");
-        preview.style.setProperty("top", "185px", "important");
-        preview.style.setProperty("left", "auto", "important");
-        preview.style.setProperty("right", "25px", "important");
-        preview.style.setProperty("transform", "none", "important");
-        preview.style.setProperty("z-index", "10000", "important");
-     }
-   };
-     moveCameraPreview();
-
+     
+     
     $("cskip").onclick = () => finish(false);
     function validate(){
       el.innerHTML = `<div class="msg" style="top:30%"><b>Accuracy check</b><br>Stare at the red dot for 3 seconds.</div><div class="target" style="left:50%;top:62%"></div>`;
