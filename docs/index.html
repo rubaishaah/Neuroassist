@@ -1206,6 +1206,19 @@ function runCalibration(){
            }
         });
      });
+     const moveCameraPreview = () => {
+        const preview = document.getElementById("webgazerVideoContainer");
+        
+     if (preview) {
+        preview.style.setProperty("position", "fixed", "important");
+        preview.style.setProperty("top", "185px", "important");
+        preview.style.setProperty("left", "auto", "important");
+        preview.style.setProperty("right", "25px", "important");
+        preview.style.setProperty("transform", "none", "important");
+        preview.style.setProperty("z-index", "10000", "important");
+     }
+   };
+     moveCameraPreview();
 
     $("cskip").onclick = () => finish(false);
     function validate(){
