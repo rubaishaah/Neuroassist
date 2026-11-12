@@ -333,14 +333,20 @@ section.chapter{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16
 .btn.start{font-size:17px;padding:13px 26px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 /* Keep calibration dots above the webcam preview */
-#calib {
-  z-index: 10001 !important;
+
+/* Webcam visible above calibration background */
+#webgazerVideoContainer {
+  z-index: 10000 !important;
+  pointer-events: none !important;
 }
 
+/* Individual calibration dots appear above webcam */
 #calib .dot {
+  position: absolute;
   z-index: 10002 !important;
   pointer-events: auto !important;
 }
+
 
 </style>
 <style>
