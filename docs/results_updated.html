@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Results · NeuroAssist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="pages.css">
+<style>
+.results-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;text-align:left}
+.metric-card{min-width:0;padding:17px;border-radius:15px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}
+.metric-card>strong{display:block;margin:8px 0 5px;font-size:clamp(21px,2.5vw,30px);font-weight:800;overflow-wrap:anywhere}
+.metric-card>b{display:block;margin-bottom:12px}
+.mini-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.08);font-size:13px}
+.mini-row strong{margin:0;font-size:14px;white-space:nowrap}
+.bar-list{display:flex;flex-direction:column;gap:22px}
+.bar-row{display:flex;flex-direction:column;gap:8px;text-align:left}
+.bar-top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}
+.bar-track,.stack-track{width:100%;height:11px;background:#1b232c;border-radius:10px;overflow:hidden}
+.bar-fill{height:100%;background:#3fb6b2;border-radius:10px}
+.stack-track{display:flex}
+.stack-human{height:100%;background:#3fb6b2}
+.stack-robot{height:100%;background:#ffcfb5}
+.empty-state{padding:24px;text-align:center;opacity:.75}
+.data-note{padding:16px 18px;border:1px solid rgba(63,182,178,.25);border-radius:13px;background:rgba(63,182,178,.055);text-align:left}
+.section-intro{max-width:680px;margin:0 auto 28px}
+.dashboard-panel{width:100%;padding:clamp(20px,3vw,34px);text-align:left}
+.dashboard-panel> b{display:block;margin-bottom:18px}
+@media(max-width:760px){.results-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:440px){.results-grid{grid-template-columns:1fr}.bar-top{align-items:flex-start;flex-direction:column;gap:4px}}
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Pages">
+  <a class="brand" href="index.html">NeuroAssist</a>
+  <div class="links">
+    <a href="story.html">Sam's story</a>
+    <a href="experiment.html">The experiment</a>
+    <a href="results.html" aria-current="page">Results</a>
+    <a class="cta" href="index.html">Help Sam</a>
+  </div>
+</nav>
+
+<main>
+  <section class="ch split">
+    <div style="display:flex;flex-direction:column;gap:22px">
+      <p class="tag rv">01 · THE ONLINE STUDY</p>
+      <h1 class="rv d1" style="font-size:clamp(40px,5.2vw,72px)">How people and robots <span class="serif">share control.</span></h1>
+      <p class="lede rv d2">Investigating intention inference, gaze-guided autonomy, adaptive control and human–robot coordination.</p>
+      <p class="small rv d3">Browser experiment · Webcam gaze · Simulated decoder · Website v3.5.0</p>
+      <div class="data-note rv">
+        <b>About this evaluation</b>
+        <p class="small" style="margin:8px 0 0">This online study uses real participants and webcam-based gaze tracking. Its neural decoder is simulated; it does not use live EEG hardware or neural signals.</p>
+      </div>
+    </div>
+
+    <div class="glass rv d2" style="padding:clamp(20px,2.6vw,34px);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+        <b>Online study snapshot</b>
+        <button class="btn ghost" id="liveRefresh" type="button" style="padding:8px 14px;font-size:13px">Refresh</button>
+      </div>
+      <div class="results-grid">
+        <div class="metric-card"><span class="small">Completed participants</span><strong id="statParticipants">–</strong></div>
+        <div class="metric-card"><span class="small">Scored trials</span><strong id="statTrials">–</strong></div>
+        <div class="metric-card"><span class="small">Decision steps</span><strong id="statSteps">–</strong></div>
+        <div class="metric-card"><span class="small">Complete across all conditions</span><strong id="statBalanced">–</strong></div>
+      </div>
+      <p class="small" id="liveSub" aria-live="polite">Loading participant results…</p>
+    </div>
+  </section>
+
+  <section class="ch center">
+    <p class="tag rv">02 · TASK PERFORMANCE</p>
+    <h2 class="rv d1">How well does each controller <span class="serif">complete the task?</span></h2>
+    <p class="small section-intro">Online participant results only. Direct, Adaptive and Autonomy are conditions within this browser-study protocol.</p>
+    <div class="glass dashboard-panel rv d2">
+      <b>Task success rate</b>
+      <div class="bar-list" id="successChart"></div>
+      <div style="height:28px"></div>
+      <b>Completion time, path efficiency and response time</b>
+      <div id="performanceTable"></div>
+    </div>
+  </section>
+
+  <section class="ch center">
+    <p class="tag rv">03 · CONTROL ALLOCATION</p>
+    <h2 class="rv d1">Who is <span class="serif">steering?</span></h2>
+    <p class="small section-intro">How much control authority is allocated to the human and how much to the robot?</p>
+    <div class="glass dashboard-panel rv d2">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
+        <span class="small" style="color:#3fb6b2">■ Human control</span>
+        <span class="small" style="color:#ffcfb5">■ Robot control</span>
+      </div>
+      <div class="bar-list" id="allocationChart"></div>
+    </div>
+  </section>
+
+  <section class="ch center">
+    <p class="tag rv">04 · INTENTION INFERENCE</p>
+    <h2 class="rv d1">Does the robot <span class="serif">infer intention?</span></h2>
+    <p class="small section-intro">Looking beyond task success: confidence, uncertainty and agreement between human intention and robot inference.</p>
+    <div class="results-grid rv d2" id="inferenceGrid"></div>
+  </section>
+
+  <section class="ch center">
+    <p class="tag rv">05 · ADAPTATION & ROBUSTNESS</p>
+    <h2 class="rv d1">What happens when <span class="serif">intentions change?</span></h2>
+    <p class="small section-intro">Recovery following changes in intended goals and resistance to distracting objects.</p>
+    <div class="results-grid rv d2" id="adaptationGrid"></div>
+  </section>
+
+  <section class="ch center">
+    <p class="tag rv">06 · INPUT RELIABILITY</p>
+    <h2 class="rv d1">How reliable are the <span class="serif">signals?</span></h2>
+    <p class="small section-intro">Gaze tracking and simulated decoder measurements help explain the conditions under which shared control succeeds or fails.</p>
+    <div class="results-grid rv d2" id="reliabilityGrid"></div>
+  </section>
+
+  <section class="ch center">
+    <p class="tag rv">07 · HUMAN EXPERIENCE</p>
+    <h2 class="rv d1">How does it feel <span class="serif">to use?</span></h2>
+    <p class="small section-intro">Task performance is only one part of successful shared control. Workload, trust and perceived control matter too.</p>
+    <div class="results-grid rv d2" id="experienceGrid"></div>
+  </section>
+
+  <section class="ch center">
+    <p class="tag rv">08 · SEPARATE OFFLINE EVALUATION</p>
+    <h2 class="rv d1">An earlier <span class="serif">EEG evaluation.</span></h2>
+    <p class="small section-intro">This is a separate offline experiment using recorded EEG, simulated gaze and nine recorded users. Its results are not pooled with or directly compared against the online browser study.</p>
+    <details class="more rv">
+      <summary>View offline evaluation results</summary>
+      <div class="body">
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>System</th><th class="n">Right item</th><th class="n">Time</th><th class="n">Human control</th></tr></thead>
+            <tbody>
+              <tr><td>Sam alone</td><td class="n">75.7%</td><td class="n">36.0 s</td><td class="n">100%</td></tr>
+              <tr><td>Robot alone</td><td class="n">99.1%</td><td class="n">28.1 s</td><td class="n">0%</td></tr>
+              <tr><td><b>Shared control</b></td><td class="n">97.6%</td><td class="n">27.6 s</td><td class="n">24%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small">In the offline unreliable-gaze scenario (30% on target), robot-only performance was 52%, while shared control achieved 83%.</p>
+        <p class="small">Offline evaluation: 60 runs per system. These figures describe that evaluation only and should not be interpreted as online participant outcomes.</p>
+      </div>
+    </details>
+  </section>
+</main>
+
+<footer class="foot">NeuroAssist · a research prototype on shared-control brain–computer interfaces · Sam is a fictional persona</footer>
+
+<script>
+(()=>{
+  const els=document.querySelectorAll('.rv');
+  if(!('IntersectionObserver' in window)){els.forEach(e=>e.classList.add('in'));return;}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}
+  }),{threshold:.15});
+  els.forEach(e=>io.observe(e));
+  setTimeout(()=>els.forEach(e=>e.classList.add('in')),2500);
+})();
+</script>
+<script src="config.js"></script>
+<script>
+(()=>{
+  const CFG=window.NEUROASSIST_CONFIG||{};
+  const RESULTS_URL=CFG.RESULTS_URL||"https://script.google.com/macros/s/AKfycbzBENQLMT2csICF2P8FVjI6w37NEnaq0X2IXjInxC_qPkZJEB-EYJRH8qFlonwk0Gnipw/exec";
+  const $=id=>document.getElementById(id);
+  const ORDER=["direct","autonomy","adaptive"];
+  const LABELS={direct:"Direct control",autonomy:"Gaze autonomy",adaptive:"Adaptive shared control"};
+  let LIVE=null;
+
+  const metricMean=(condition,key)=>{
+    const item=LIVE&&LIVE.conditions&&LIVE.conditions[condition]&&LIVE.conditions[condition][key];
+    return item&&item.mean!==undefined?item.mean:null;
+  };
+  const pct=value=>value==null||!Number.isFinite(value)?"–":Math.round(value*100)+"%";
+  const number=(value,digits=1,suffix="")=>value==null||!Number.isFinite(value)?"–":value.toFixed(digits)+suffix;
+  const width=value=>value==null||!Number.isFinite(value)?0:Math.max(0,Math.min(100,value*100));
+
+  function noData(message){
+    return `<p class="small empty-state">${message||"Results will appear after completed v3.5.0 sessions are received."}</p>`;
+  }
+
+  function renderOverview(){
+    const n=LIVE&&LIVE.n?LIVE.n:0;
+    $("statParticipants").textContent=n||"–";
+    $("statTrials").textContent=n?(LIVE.total_trials??"–"):"–";
+    $("statSteps").textContent=n?(LIVE.total_steps??"–"):"–";
+    $("statBalanced").textContent=n?`${LIVE.complete_all_conditions??0}/${n}`:"–";
+
+    if(LIVE&&LIVE.failed){
+      $("liveSub").textContent="Couldn't load the live summary. Please refresh.";
+    }else if(LIVE&&LIVE.off){
+      $("liveSub").textContent="The participant summary endpoint is not configured.";
+    }else if(!n){
+      $("liveSub").textContent="No completed v3.5.0 participants yet.";
+    }else{
+      const updated=LIVE.updated?new Date(LIVE.updated).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"–";
+      $("liveSub").textContent=`Completed v3.5.0 sessions · updated ${updated} · participant-level averages`;
+    }
+  }
+
+  function renderSuccess(){
+    if(!LIVE||!LIVE.n){$("successChart").innerHTML=noData();return;}
+    $("successChart").innerHTML=ORDER.map(c=>{
+      const value=metricMean(c,"success");
+      const n=LIVE.conditions&&LIVE.conditions[c]?LIVE.conditions[c].n:0;
+      return `<div class="bar-row">
+        <div class="bar-top"><span>${LABELS[c]}</span><b>${pct(value)}</b></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${width(value)}%"></div></div>
+        <span class="small">${n} participant${n===1?"":"s"} with scored trials</span>
+      </div>`;
+    }).join("");
+  }
+
+  function renderPerformance(){
+    if(!LIVE||!LIVE.n){$("performanceTable").innerHTML=noData();return;}
+    $("performanceTable").innerHTML=`<div class="tablewrap"><table>
+      <thead><tr><th>Online condition</th><th class="n">Mean time</th><th class="n">Path efficiency</th><th class="n">Mean response time</th></tr></thead>
+      <tbody>${ORDER.map(c=>`<tr>
+        <td>${LABELS[c]}</td>
+        <td class="n">${number(metricMean(c,"time_s"),1," s")}</td>
+        <td class="n">${pct(metricMean(c,"path_efficiency"))}</td>
+        <td class="n">${number(metricMean(c,"mean_rt_ms"),0," ms")}</td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  }
+
+  function renderAllocation(){
+    if(!LIVE||!LIVE.n){$("allocationChart").innerHTML=noData();return;}
+    $("allocationChart").innerHTML=ORDER.map(c=>{
+      const human=metricMean(c,"user_share");
+      const robot=human==null?null:1-human;
+      return `<div class="bar-row">
+        <div class="bar-top"><span>${LABELS[c]}</span><b>${pct(human)} human · ${pct(robot)} robot</b></div>
+        <div class="stack-track">
+          ${human==null?"":`<div class="stack-human" style="width:${width(human)}%"></div><div class="stack-robot" style="width:${width(robot)}%"></div>`}
+        </div>
+      </div>`;
+    }).join("")+`<p class="small">Robot share is calculated as 1 − human share. This represents recorded controller allocation, not perceived control.</p>`;
+  }
+
+  function renderInference(){
+    if(!LIVE||!LIVE.n){$("inferenceGrid").innerHTML=noData();return;}
+    const metrics=[
+      ["Belief assigned to intended goal","belief_goal_probability",pct],
+      ["Belief top-choice correctness","belief_correct",pct],
+      ["Belief entropy","belief_entropy_nats",v=>number(v,3," nats")],
+      ["Human–agent disagreement","disagreement_rate",pct],
+      ["Mean autonomy backoff","autonomy_backoff",v=>number(v,3)],
+      ["Veto frequency","veto_rate",pct]
+    ];
+    $("inferenceGrid").innerHTML=metrics.map(([title,key,format])=>
+      `<div class="metric-card glass"><b>${title}</b>${ORDER.map(c=>
+        `<div class="mini-row"><span>${LABELS[c]}</span><strong>${format(metricMean(c,key))}</strong></div>`
+      ).join("")}</div>`
+    ).join("");
+  }
+
+  function renderAdaptation(){
+    if(!LIVE||!LIVE.n){$("adaptationGrid").innerHTML=noData();return;}
+    $("adaptationGrid").innerHTML=ORDER.map(c=>{
+      const x=LIVE.conditions&&LIVE.conditions[c]?LIVE.conditions[c]:{};
+      return `<div class="metric-card glass">
+        <b>${LABELS[c]}</b>
+        <div class="mini-row"><span>Goal-change trials</span><strong>${x.goal_change_trials??0}</strong></div>
+        <div class="mini-row"><span>Belief recovery rate</span><strong>${pct(metricMean(c,"goal_recovery_rate"))}</strong></div>
+        <div class="mini-row"><span>Mean recovery decisions</span><strong>${number(metricMean(c,"goal_recovery_steps"),1)}</strong></div>
+        <div class="mini-row"><span>Distraction trials</span><strong>${x.distraction_trials??0}</strong></div>
+        <div class="mini-row"><span>Distractor capture rate</span><strong>${pct(metricMean(c,"distractor_capture_rate"))}</strong></div>
+        <div class="mini-row"><span>Distractor recovery decisions</span><strong>${number(metricMean(c,"distractor_recovery_steps"),1)}</strong></div>
+      </div>`;
+    }).join("");
+  }
+
+  function renderReliability(){
+    if(!LIVE||!LIVE.n){$("reliabilityGrid").innerHTML=noData();return;}
+    const calibration=`<div class="metric-card glass"><b>Mean calibration error</b><strong>${number(LIVE.calibration_error_px,1," px")}</strong><span class="small">Across completed v3.5.0 participants</span></div>`;
+    const perCondition=ORDER.map(c=>`<div class="metric-card glass">
+      <b>${LABELS[c]}</b>
+      <div class="mini-row"><span>Gaze-on-goal</span><strong>${pct(metricMean(c,"gaze_on_goal"))}</strong></div>
+      <div class="mini-row"><span>Simulated decoder misread rate</span><strong>${pct(metricMean(c,"decoder_misread_rate"))}</strong></div>
+      <div class="mini-row"><span>Decoder entropy</span><strong>${number(metricMean(c,"decoder_entropy_nats"),3," nats")}</strong></div>
+    </div>`).join("");
+    $("reliabilityGrid").innerHTML=calibration+perCondition;
+  }
+
+  function renderExperience(){
+    if(!LIVE||!LIVE.n){$("experienceGrid").innerHTML=noData();return;}
+    const metrics=[
+      ["NASA-TLX workload","tlx",v=>number(v,1)],
+      ["Perceived control","control",v=>number(v,1," / 7")],
+      ["Trust","trust",v=>number(v,1," / 7")],
+      ["Enjoyment","enjoyment",v=>number(v,1," / 7")]
+    ];
+    $("experienceGrid").innerHTML=metrics.map(([title,key,format])=>
+      `<div class="metric-card glass"><b>${title}</b>${ORDER.map(c=>
+        `<div class="mini-row"><span>${LABELS[c]}</span><strong>${format(metricMean(c,key))}</strong></div>`
+      ).join("")}</div>`
+    ).join("");
+  }
+
+  function render(){
+    renderOverview();
+    renderSuccess();
+    renderPerformance();
+    renderAllocation();
+    renderInference();
+    renderAdaptation();
+    renderReliability();
+    renderExperience();
+  }
+
+  async function load(force){
+    if(!RESULTS_URL){LIVE={off:true};render();return;}
+    if(force)$("liveSub").textContent="Refreshing live results…";
+    try{
+      const url=RESULTS_URL+(RESULTS_URL.includes("?")?"&":"?")+"summary=1&t="+Date.now();
+      const response=await fetch(url,{redirect:"follow",cache:"no-store"});
+      if(!response.ok)throw new Error("HTTP "+response.status);
+      const json=await response.json();
+      if(!json.ok)throw new Error(json.error||"Summary unavailable");
+      LIVE=json;
+    }catch(error){
+      LIVE={failed:true};
+    }
+    render();
+  }
+
+  $("liveRefresh").addEventListener("click",()=>load(true));
+  render();
+  load(false);
+  setInterval(()=>load(false),30000);
+})();
+</script>
+</body>
+</html>
