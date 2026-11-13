@@ -83,6 +83,25 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .olabel .pct{font-family:var(--f-mono);font-size:11px;opacity:.75;margin-left:5px}
 .hud{position:absolute;left:12px;right:12px;top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;pointer-events:none}
 .hud button{pointer-events:auto}
+   .head-warning {
+      position:absolute;
+      top:48px;
+      right:12px;
+      z-index:24;
+      max-width:min(340px,calc(100% - 24px));
+      padding:9px 12px;
+      border:1px solid var(--gaze);
+      border-radius:9px;
+      background:var(--panel);
+      color:var(--ink);
+      font-size:12.5px;
+      line-height:1.4;
+      box-shadow:0 6px 20px rgba(0,0,0,.16);
+      pointer-events:none;
+   }
+   .head-warning[hidden] {
+      display:none!important;
+   }
 .sam{position:absolute;left:12px;top:10px;display:flex;align-items:flex-start;gap:8px;max-width:min(62%,420px);pointer-events:none}
 .sam svg{width:42px;height:42px;flex:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
 .bubble{position:relative;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:7px 11px;font-size:13.5px;line-height:1.35;box-shadow:0 4px 14px rgba(0,0,0,.08)}
@@ -743,6 +762,13 @@ html,body{width:100%;height:100%;overflow:hidden}
         </div>
         <div id="studybar" class="studybar" hidden aria-label="Study progress"></div>
         <div class="hud" id="hud"></div>
+         <div
+            class="head-warning"
+            id="headWarning"
+            hidden
+            role="status"
+            aria-live="polite">
+         </div>
         <div class="meta" id="meta"></div>
         <div class="picker" id="picker" hidden>Click the object Sam needs</div>
         <div class="toast" id="toast" hidden></div>
@@ -1329,18 +1355,312 @@ const SND = (() => {
 })();
 
 // ---------- gaze sources ----------
-const W = { state:"off", buf:[], err:null, calibErrPx:null };
+const W = {
+  state:"off",
+  buf:[],
+  err:null,
+  calibErrPx:null,
+
+  headBaseline:null,
+  headReferenceSamples:[],
+  captureHeadReference:false,
+
+  headStatus:"unavailable",
+  headBadFrames:0,
+  headGoodFrames:0,
+  headMissingFrames:0,
+
+  headMetrics:null
+};
 let gazeDebugDot = null;
 function webcamFixation(){
   const now = performance.now(); const recent = W.buf.filter(s => now - s.t < 1200);
   if (recent.length < 3) return null;
   return V.worldFromClient(median(recent.map(s=>s.x)), median(recent.map(s=>s.y)));
 }
+
+// Read existing WebGazer face landmarks.
+// This estimates relative 2-D head movement, not full 3-D head pose.
+function readHeadPose(){
+  try {
+    const tracker = window.webgazer?.getTracker?.();
+    const pts = tracker?.getPositions?.();
+
+    if (!Array.isArray(pts) || pts.length <= 454) return null;
+
+    const point = i => {
+      const p = pts[i];
+      return p && Number.isFinite(p[0]) && Number.isFinite(p[1])
+        ? [p[0], p[1]]
+        : null;
+    };
+
+    const leftFace = point(234);
+    const rightFace = point(454);
+    const forehead = point(10);
+    const chin = point(152);
+    const leftEye = point(33);
+    const rightEye = point(263);
+
+    if (![leftFace, rightFace, forehead, chin, leftEye, rightEye].every(Boolean)) {
+      return null;
+    }
+
+    const eyeSpan = Math.hypot(
+      rightEye[0] - leftEye[0],
+      rightEye[1] - leftEye[1]
+    );
+
+    const faceWidth = Math.hypot(
+      rightFace[0] - leftFace[0],
+      rightFace[1] - leftFace[1]
+    );
+
+    if (eyeSpan < 10 || faceWidth < 20) return null;
+
+    return {
+      cx: (leftFace[0] + rightFace[0]) / 2,
+      cy: (forehead[1] + chin[1]) / 2,
+      eyeSpan,
+      faceWidth,
+      roll: Math.atan2(
+        rightEye[1] - leftEye[1],
+        rightEye[0] - leftEye[0]
+      ) * 180 / Math.PI
+    };
+
+  } catch(e) {
+    return null;
+  }
+}
+
+
+// Calculate a representative head position from multiple frames.
+function medianHeadPose(samples){
+  return {
+    cx: median(samples.map(p => p.cx)),
+    cy: median(samples.map(p => p.cy)),
+    eyeSpan: median(samples.map(p => p.eyeSpan)),
+    faceWidth: median(samples.map(p => p.faceWidth)),
+    roll: median(samples.map(p => p.roll))
+  };
+}
+
+
+// Display a warning when tracking becomes unreliable.
+function updateHeadWarning(){
+  const el = $("headWarning");
+  if (!el) return;
+
+  if (
+    $("gz").value !== "webcam" ||
+    W.state !== "ready" ||
+    calibActive ||
+    W.headStatus === "stable" ||
+    W.headStatus === "unavailable"
+  ) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+
+  el.hidden = false;
+
+  el.textContent = W.headStatus === "lost"
+    ? "Face not detected. Keep your face visible; gaze input is paused."
+    : "Head position changed. Gaze input is paused. Return to your calibrated position, or recalibrate in Options.";
+}
+
+
+// Change tracking state and discard old gaze estimates.
+function setHeadStatus(status){
+  if (W.headStatus === status) return;
+
+  W.headStatus = status;
+  W.buf = [];
+
+  W.headBadFrames = 0;
+  W.headGoodFrames = 0;
+  W.headMissingFrames = 0;
+
+  updateHeadWarning();
+}
+
+
+// Compare current head position with the calibrated reference.
+function monitorHeadPose(pose){
+
+  // Collect samples while establishing the reference position.
+  if (W.captureHeadReference) {
+    if (pose) W.headReferenceSamples.push(pose);
+    return;
+  }
+
+  if (!W.headBaseline || W.state !== "ready" || calibActive) return;
+
+  // Detect loss of face tracking.
+  if (!pose) {
+    W.headMissingFrames++;
+    W.headBadFrames = 0;
+    W.headGoodFrames = 0;
+
+    if (W.headMissingFrames >= 8) {
+      setHeadStatus("lost");
+    }
+    return;
+  }
+
+  W.headMissingFrames = 0;
+
+  const ref = W.headBaseline;
+
+  // Head translation relative to inter-eye distance.
+  const shift = Math.hypot(
+    (pose.cx - ref.cx) / ref.eyeSpan,
+    (pose.cy - ref.cy) / ref.eyeSpan
+  );
+
+  // Detect changes in apparent face size.
+  const scaleChange = Math.abs(
+    pose.faceWidth / ref.faceWidth - 1
+  );
+
+  // Detect head roll.
+  let rollChange = pose.roll - ref.roll;
+
+  while (rollChange > 180) rollChange -= 360;
+  while (rollChange < -180) rollChange += 360;
+
+  W.headMetrics = {
+    shift,
+    scaleChange,
+    rollChange
+  };
+
+  // Initial pilot thresholds; tune after testing.
+  const moved =
+    shift > 0.18 ||
+    scaleChange > 0.12 ||
+    Math.abs(rollChange) > 8;
+
+  if (moved) {
+    W.headBadFrames++;
+    W.headGoodFrames = 0;
+
+    // Require six consecutive frames before pausing gaze.
+    if (W.headBadFrames >= 6) {
+      setHeadStatus("shifted");
+    }
+
+  } else {
+    W.headGoodFrames++;
+    W.headBadFrames = 0;
+
+    // Require twelve consecutive good frames to resume gaze.
+    if (W.headGoodFrames >= 12) {
+      setHeadStatus("stable");
+    }
+  }
+}
+
+
+// Establish a reference head position after gaze calibration.
+async function captureHeadReference(){
+
+  const el = $("calib");
+
+  calibActive = true;
+  el.hidden = false;
+
+  W.headReferenceSamples = [];
+  W.captureHeadReference = true;
+
+  el.innerHTML = `
+    <div class="prep">
+      <div class="prep-card">
+        <div class="eyebrow">Gaze setup · Head-position reference</div>
+        <h2>Hold your usual position</h2>
+        <p>
+          Sit comfortably as you will during the experiment.
+          Keep your face centred and look naturally at the screen
+          for two seconds while we record a reference position.
+        </p>
+        <p class="hint">
+          You can move naturally during the study. If your head
+          shifts substantially, gaze input will pause until you
+          return to this position or recalibrate.
+        </p>
+      </div>
+    </div>
+  `;
+
+  await delay(2200);
+
+  W.captureHeadReference = false;
+
+  const samples = W.headReferenceSamples.slice();
+
+  if (samples.length < 10) {
+
+    const retry = await awaitPrepButton(`
+      <h2>Couldn't establish a head-position reference</h2>
+      <p>
+        Face landmarks were not available consistently.
+        Check that your face is visible and try again.
+      </p>
+      <div class="row">
+        <button class="btn primary" id="prepNext" type="button">
+          Try again
+        </button>
+        <button class="btn" id="prepCancel" type="button">
+          Cancel
+        </button>
+      </div>
+    `, "prepNext");
+
+    if (!retry) {
+      calibActive = false;
+      el.hidden = true;
+      el.innerHTML = "";
+      return false;
+    }
+
+    return captureHeadReference();
+  }
+
+  W.headBaseline = medianHeadPose(samples);
+
+  W.headStatus = "stable";
+  W.headBadFrames = 0;
+  W.headGoodFrames = 0;
+  W.headMissingFrames = 0;
+
+  W.headMetrics = {
+    shift: 0,
+    scaleChange: 0,
+    rollChange: 0
+  };
+
+  W.buf = [];
+
+  calibActive = false;
+  el.hidden = true;
+  el.innerHTML = "";
+
+  updateHeadWarning();
+
+  return true;
+}
+
 function gazeSample(){
   const src = $("gz").value;
   if (src === "off") return null;
   if (src === "mouse") return mouse ? mouse.slice() : null;
-  if (src === "webcam") return W.state === "ready" ? webcamFixation() : null;
+  if (src === "webcam") {
+  return W.state === "ready" && W.headStatus === "stable"
+    ? webcamFixation()
+    : null;
+  } 
   const pg = +$("gzrel").value/100, po = Math.min(0.25, 0.95-pg);
   const u = Math.random(); let t;
   if (S.distractor != null && S.step + 1 <= S.distractUntil && Math.random() < 0.7) t = scene.objs[S.distractor]; // attention captured
@@ -1360,7 +1680,9 @@ async function startWebcam(){
     wg.saveDataAcrossSessions(false);
     wg.setRegression("ridge").showPredictionPoints(false).applyKalmanFilter(true);
     wg.setGazeListener((d) => {
+     monitorHeadPose(readHeadPose());
      if (!d) {
+       V.setCursor(null);
        if (gazeDebugDot) gazeDebugDot.style.display = "none";
        return;
      }
@@ -1380,10 +1702,11 @@ async function startWebcam(){
      }
 
      // Show the dot only outside the actual study
-     const showDebug =
-       $("gz").value === "webcam" &&
-       W.state === "ready" &&
-       !calibActive;
+       const showDebug =
+          $("gz").value === "webcam" &&
+          W.state === "ready" &&
+          W.headStatus === "stable" &&
+          !calibActive;
 
      if (showDebug && Number.isFinite(d.x) && Number.isFinite(d.y)) {
         const recent = W.buf.filter(
@@ -1403,19 +1726,25 @@ async function startWebcam(){
 
      // Keep the existing 3D gaze cursor working
      if (
-       $("gz").value === "webcam" &&
-       W.state === "ready" &&
-       !calibActive 
+        $("gz").value === "webcam" &&
+        W.state === "ready" &&
+        W.headStatus === "stable" &&
+        !calibActive
      ) {
-       V.setCursor(V.worldFromClient(d.x, d.y, true));
+        V.setCursor(V.worldFromClient(d.x, d.y, true));
+     } else if (W.headStatus !== "stable") {
+        V.setCursor(null);
      }
    });
     await wg.begin();
     if (wg.removeMouseEventListeners) wg.removeMouseEventListeners();
     W.state = "camera"; camNote();
-    const ok = await runCalibration();
-    W.state = ok ? "ready" : "camera";
-    try { wg.showVideoPreview(false); } catch(e){}
+    const calibrated = await runCalibration();
+     const ok = calibrated
+        ? await captureHeadReference()
+        : false;
+     W.state = ok ? "ready" : "camera";
+     try { wg.showVideoPreview(false); } catch(e){}
   } catch (e) {
     W.state = "error";
     W.err = "The camera or the eye-tracking model could not start here. Allow camera access, or open the standalone (GitHub Pages) version of this demo. Inside some embedded viewers the camera is always blocked.";
@@ -1578,12 +1907,30 @@ async function startWebcamForDay2(){
     wg.params.faceMeshSolutionPath=FACEMESH_URL; wg.params.showVideoPreview=true;
     wg.saveDataAcrossSessions(false);
     wg.setRegression("ridge").showPredictionPoints(false).applyKalmanFilter(true);
-    wg.setGazeListener(d=>{
-      if(!d) return;
-      W.buf.push({t:performance.now(),x:d.x,y:d.y});
-      if(W.buf.length>120) W.buf.shift();
-      if(calibActive && validating) valSamples.push({x:d.x,y:d.y});
-      if(!calibActive && W.state==="ready") V.setCursor(V.worldFromClient(d.x,d.y,true));
+    wg.setGazeListener(d => {
+       monitorHeadPose(readHeadPose());
+       if (!d) {
+          V.setCursor(null);
+          return;
+       }
+       W.buf.push({
+          t: performance.now(),
+          x: d.x,
+          y: d.y
+       });
+       if (W.buf.length > 120) W.buf.shift();
+       if (calibActive && validating) {
+          valSamples.push({x:d.x, y:d.y});
+       }
+       if (
+          !calibActive &&
+          W.state === "ready" &&
+          W.headStatus === "stable"
+       ) {
+          V.setCursor(V.worldFromClient(d.x, d.y, true));
+       } else {
+          V.setCursor(null);
+       }
     });
     await wg.begin();
     if(wg.removeMouseEventListeners) wg.removeMouseEventListeners();
