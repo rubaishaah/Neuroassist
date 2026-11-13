@@ -919,7 +919,7 @@ const V = (() => {
     else if (name === "pills"){ add(new T.CylinderGeometry(0.035,0.035,0.08,28), mat(0xd9822b,.35), 0,.04,0); add(new T.CylinderGeometry(0.038,0.038,0.025,28), mat(0xf4f4f2,.4), 0,.092,0); add(new T.BoxGeometry(0.05,0.03,0.002), mat(0xffffff,.8), 0,.045,.035); h = 0.11; }
     else if (name === "glasses"){ const m = mat(0x222831,.35,.3); add(new T.TorusGeometry(0.038,0.007,10,28), m, -.045,.04,0); add(new T.TorusGeometry(0.038,0.007,10,28), m, .045,.04,0); add(new T.BoxGeometry(0.02,0.006,0.006), m, 0,.05,0); add(new T.BoxGeometry(0.006,0.006,0.12), m, -.083,.04,-.06); add(new T.BoxGeometry(0.006,0.006,0.12), m, .083,.04,-.06); h = 0.09; }
     else { add(new T.TorusGeometry(0.03,0.006,10,28), mat(0xc9a227,.3,.8), 0,.006,0, Math.PI/2); add(new T.BoxGeometry(0.018,0.006,0.08), mat(0xb8bec6,.3,.9), .02,.006,.06, 0,.4,0); add(new T.BoxGeometry(0.035,0.012,0.05), mat(0x2a6f97,.6), -.03,.006,.05); h = 0.03; }
-    g.scale.setScalar(1.6); g.userData.h = h*1.6; return g; // restored original 1x object size
+    g.scale.setScalar(2); g.userData.h = h*2; return g; // restored original 1x object size
   }
   api.buildObjects = () => {
     while (objGroup.children.length) objGroup.remove(objGroup.children[0]);
