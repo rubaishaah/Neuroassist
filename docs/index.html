@@ -1215,9 +1215,14 @@ function render(){
   const mode = $("mode").value;
   let hud = "";
   if (!study.active) hud += `<span class="pill acc">${esc({adaptive:"Adaptive shared control",fixed:"Shared control, 50/50",direct:"Brain only",autonomy:"Robot only"}[mode])}</span>`;
-  if ($("gz").value === "webcam") hud += W.state === "ready" ? `<span class="pill good">Webcam gaze on</span>` : `<span class="pill warn">Webcam gaze off</span>`;
+  if ($("gz").value === "webcam") {
+  hud += W.state === "ready" && W.headStatus === "stable"
+    ? `<span class="pill good">Webcam gaze on</span>`
+    : `<span class="pill warn">Webcam gaze paused</span>`;
+  }
   hud += `<button type="button" class="pill" id="muteBtn" aria-pressed="${SND.muted}" title="Sound">${SND.muted ? "Sound off" : "Sound on"}</button>`;
   $("hud").innerHTML = hud;
+  updateHeadWarning();
   $("muteBtn").onclick = () => { SND.muted = !SND.muted; store.set("neuroassist-muted", SND.muted ? "1" : ""); render(); };
   $("meta").textContent = `decision ${S.step}/${MAXSTEPS} · ${S.step*2} s`;
   const showIntro = !study.active && !introDismissed;
@@ -1761,7 +1766,16 @@ function camNote(){
   else if (W.state === "camera") n.innerHTML = `<p class="note warn">Camera on but not calibrated. <button class="btn" type="button" id="recal">Calibrate</button></p>`;
   else if (W.state === "error") n.innerHTML = `<p class="note warn">${esc(W.err)}</p>`;
   else n.innerHTML = `<p class="note"><button class="btn" type="button" id="camstart">Start webcam eye tracking</button></p>`;
-  const rc = $("recal"); if (rc) rc.onclick = async () => { const ok = await runCalibration(); W.state = ok ? "ready" : "camera"; camNote(); render(); };
+  const rc = $("recal");
+   if (rc) rc.onclick = async () => {
+      const calibrated = await runCalibration();
+      const ok = calibrated
+         ? await captureHeadReference()
+         : false;
+      W.state = ok ? "ready" : "camera";
+      camNote();
+      render();
+   };
   const cs = $("camstart"); if (cs) cs.onclick = () => startWebcam();
 }
 let calibActive = false, validating = false, valSamples = [];
@@ -1894,7 +1908,11 @@ async function prepareGazeForDay2(){
       <div class="row"><button class="btn primary" type="button" id="prepNext">Start calibration</button><button class="btn" type="button" id="prepCancel">Cancel</button></div>`,"prepNext");
   }
   if(ok) ok=await runCalibration();
-  calibActive=false; validating=false; el.hidden=true; el.innerHTML="";
+  if(ok) ok=await captureHeadReference();
+   calibActive=false;
+   validating=false;
+   el.hidden=true;
+   el.innerHTML="";
   setPreview(false);
   return ok;
 }
