@@ -1621,8 +1621,13 @@ async function runPrecisionTest(){
       <div class="target test-target" style="left:${x}px;top:${y}px"></div>
       <div class="progress">Target ${i+1} / ${targets.length} · Keep looking at the dot</div>`;
     mountCalibrationCamera();
-    await delay(700); valSamples=[]; validating=true;
-    await delay(3500); validating=false;
+    // Allow the eyes and prediction filter to settle
+     await delay(1800);
+     // Begin collecting stable fixation predictions
+     valSamples = [];
+     validating = true;
+     await delay(3000);
+     validating = false;
     const r=el.querySelector(".target").getBoundingClientRect();
     const cx=r.left+r.width/2,cy=r.top+r.height/2;
     const samples=valSamples.filter(s=>Number.isFinite(s.x)&&Number.isFinite(s.y));
